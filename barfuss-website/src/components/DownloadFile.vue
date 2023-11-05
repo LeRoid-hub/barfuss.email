@@ -1,10 +1,16 @@
 <template>
   <div class="item">
+    <i>
+      <slot name="icon"></slot>
+    </i>
     <div class="details">
       <h3>
         <slot name="heading"></slot>
       </h3>
-      <slot></slot>
+      <p>
+      <slot name="desc"></slot>
+      </p>
+      <slot name="file"></slot>
     </div>
   </div>
 </template>
