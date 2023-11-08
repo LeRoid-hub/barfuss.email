@@ -38,3 +38,9 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Build Docker
+```sh
+docker build . -t barfuss-website
+docker run -d -p 8080:80 barfuss-website
+```
