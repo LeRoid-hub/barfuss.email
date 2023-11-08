@@ -1,3 +1,3 @@
 # barfuss.email
 ## Instructions
-[here](../barfuss.website/README.md)
+[here](./barfuss-website/README.md)
