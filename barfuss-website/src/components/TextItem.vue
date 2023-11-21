@@ -14,6 +14,7 @@
   margin-top: 2rem;
   display: flex;
   position: relative;
+  padding-bottom: 1rem;
 }
 
 .details {

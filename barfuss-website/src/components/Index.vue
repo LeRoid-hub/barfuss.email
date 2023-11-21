@@ -10,12 +10,9 @@ import TextItem from './TextItem.vue'
     </TextItem>
 
     <TextItem>
-        <template #heading> TEST </template>
-        Dies ist ein Test!
-    </TextItem>
-    <TextItem>
-        <template #heading> TEST </template>
-        Dies ist ein Test!
+        <template #heading> Subdomains </template>
+        <a href="http://portainer.barfuss.email">Portainer </a> <br>
+        <a href="http://nginx.barfuss.email">Nginx </a>
     </TextItem>
 
 
