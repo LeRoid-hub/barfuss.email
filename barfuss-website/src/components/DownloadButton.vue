@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
     export default {
         name: 'DownloadButton',
         props: {
