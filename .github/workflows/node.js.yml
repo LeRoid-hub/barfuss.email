@@ -9,7 +9,7 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  IMAGE_NAME: leroid_hub/barfuss.email:latest
+  IMAGE_NAME: leroid-hub/barfuss.email:latest
   PAT: ${{ secrets.PAT }}
   
 jobs:
