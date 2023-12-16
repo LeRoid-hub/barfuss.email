@@ -10,7 +10,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.actor }}/barfuss-website:latest
-  PAT: ${{ CI.secrets.PAT }}
+  PAT: ${{ secrets.CI.PAT }}
   
 jobs:
   build:
