@@ -1,4 +1,5 @@
 FROM node:latest as build-stage
+LABEL org.opencontainers.image.source=https://github.com/LeRoid-hub/barfuss.email
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
