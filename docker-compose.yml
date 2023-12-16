@@ -1,6 +1,6 @@
 services:
   frontend:
     container_name: website
-    image: ghcr.io/leroid-hub/barfuss-website:latest
+    image: ghcr.io/leroid-hub/barfuss.email:latest
     ports:
       - 8080:80
