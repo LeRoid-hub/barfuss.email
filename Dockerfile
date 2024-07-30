@@ -1,12 +1,17 @@
-FROM node:latest as build-stage
-LABEL org.opencontainers.image.source https://github.com/LeRoid-hub/barfuss.email
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY ./ .
-RUN npm run build
+# syntax=docker/dockerfile:1
 
-FROM nginx as production-stage
-RUN mkdir /app
-COPY --from=build-stage /app/dist /app
-COPY nginx.conf /etc/nginx/nginx.conf
+FROM golang:1.19
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /website
+
+EXPOSE 8080
+
+CMD [ "/website" ]
