@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -24,23 +25,29 @@ func main() {
 		}
 		fmt.Fprint(w, string(content))
 	})
-	entries, err := os.ReadDir("views")
-	if err != nil {
-		fmt.Println("Error reading directory views")
-		os.Exit(1)
-	}
-	for _, entry := range entries {
-		entry := entry.Name()
-		entry = strings.TrimSuffix(entry, ".html")
-		http.HandleFunc("/"+entry, func(w http.ResponseWriter, r *http.Request) {
-			content, err := os.ReadFile("views/" + entry + ".html")
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
+
+	filepath.Walk("views", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println("Error reading directory views")
+			os.Exit(1)
+		}
+		if len(path) > 6 {
+			path = strings.Replace(path, "\\", "/", -1)
+			if path[len(path)-5:] == ".html" {
+				http.HandleFunc("/"+path[6:len(path)-5], func(w http.ResponseWriter, r *http.Request) {
+					content, err := os.ReadFile(path)
+					if err != nil {
+						http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+						return
+					}
+					fmt.Fprint(w, string(content))
+				})
 			}
-			fmt.Fprint(w, string(content))
-		})
-	}
+		}
+
+		return nil
+	})
+
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
