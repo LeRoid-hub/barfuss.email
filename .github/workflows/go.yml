@@ -33,7 +33,7 @@ jobs:
           -u ${{ secrets.NTFY_CRED }} \
           -H "Title: Github barfuss.email" \
           -H "Content-Type: text/plain" \
-          -d $'Repo: ${{ github.repository }}\nCommit: ${{ github.sha }}\nRef: ${{ github.ref }}\nStatus: ${{ job.status}}' \
+          -d $'Repo: ${{ github.repository }}\nCommit: ${{ github.sha } - ${{ github.event.head_commit.message }}}\nRef: ${{ github.ref }}\nStatus: ${{ job.status}}' \
           ${{ secrets.NTFY_URL }}
 
 #    - name: Test
