@@ -1,53 +1,115 @@
 package main
 
 import (
-	"fmt"
-	"html"
+	"bytes"
+	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/adrg/frontmatter"
+	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 )
 
-func startHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	})
+type SlugReader interface {
+	Read(slug string) (string, error)
 }
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		content, err := os.ReadFile("views/index.html")
+type FileReader struct {
+}
+
+func (f FileReader) Read(slug string) (string, error) {
+	file, err := os.Open(slug + ".md")
+	if err != nil {
+		return "", err
+	}
+
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
+}
+
+func SiteHandler(s SlugReader) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var data Data
+		slug := r.PathValue("slug")
+		if slug == "" {
+			slug = "index"
+		}
+		content, err := s.Read(slug)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		fmt.Fprint(w, string(content))
-	})
 
-	filepath.Walk("views", func(path string, info os.FileInfo, err error) error {
+		rest, err := frontmatter.Parse(strings.NewReader(content), &data)
 		if err != nil {
-			fmt.Println("Error reading directory views")
-			os.Exit(1)
-		}
-		if len(path) > 6 {
-			path = strings.Replace(path, "\\", "/", -1)
-			if path[len(path)-5:] == ".html" {
-				http.HandleFunc("/"+path[6:len(path)-5], func(w http.ResponseWriter, r *http.Request) {
-					content, err := os.ReadFile(path)
-					if err != nil {
-						http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-						return
-					}
-					fmt.Fprint(w, string(content))
-				})
-			}
+			http.Error(w, "Error parsing frontmatter"+err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		return nil
-	})
+		var buf bytes.Buffer
 
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+		md := goldmark.New(
+			goldmark.WithExtensions(
+				highlighting.NewHighlighting(
+					highlighting.WithStyle("github"),
+				),
+			),
+		)
+
+		err = md.Convert(rest, &buf)
+		if err != nil {
+			http.Error(w, "Error converting markdown", http.StatusInternalServerError)
+			return
+		}
+
+		data.Content = template.HTML(buf.String())
+
+		err = Template.Execute(w, data)
+
+		if err != nil {
+			http.Error(w, "Error executing template", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+type Data struct {
+	Title   string `toml:"title"`
+	Slug    string `toml:"slug"`
+	Content template.HTML
+}
+
+var (
+	Template template.Template
+)
+
+func main() {
+	tpl, err := template.ParseFiles("template.html")
+	Template = *tpl
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", SiteHandler(FileReader{}))
+	mux.HandleFunc("/{slug}", SiteHandler(FileReader{}))
+
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+
+	err = http.ListenAndServe(":8080", mux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
