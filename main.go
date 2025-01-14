@@ -83,6 +83,30 @@ func SiteHandler(s SlugReader) http.HandlerFunc {
 	}
 }
 
+func english() http.HandlerFunc {
+	html := `
+		<!DOCTYPE html>
+		<html>
+		<body>
+
+		<audio controls>
+		<source src="/assets/english.wav" type="audio/wav">
+		Your browser does not support the audio element.
+		</audio>
+
+		<p> Downlaod: <a href="english.wav">english.wav</a> </p>
+
+		</body>
+		</html>
+
+	`
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(html))
+	}
+}
+
 type Data struct {
 	Title   string `toml:"title"`
 	Slug    string `toml:"slug"`
@@ -103,6 +127,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/english", english())
 	mux.HandleFunc("/", SiteHandler(FileReader{}))
 	mux.HandleFunc("/{slug}", SiteHandler(FileReader{}))
 
