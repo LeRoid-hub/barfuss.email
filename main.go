@@ -94,7 +94,7 @@ func english() http.HandlerFunc {
 		Your browser does not support the audio element.
 		</audio>
 
-		<p> Downlaod: <a href="english.wav">english.wav</a> </p>
+		<p> Downlaod: <a href="/assets/english.wav">english.wav</a> </p>
 
 		</body>
 		</html>
